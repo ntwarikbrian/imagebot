@@ -140,6 +140,20 @@ button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 }
 .warning p { margin: 0; font-size: 11px; color: var(--red); }
 
+.scenes-bar { display: flex; align-items: center; }
+.back {
+  flex: 0 0 auto;
+  width: 28px; height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
 .scenes {
   flex: 1 1 auto;
   overflow: auto;

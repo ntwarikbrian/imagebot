@@ -7,7 +7,7 @@ const elements = {
   scenes: $("#scenes"), siteStatus: $("#site-status"), runStatus: $("#run-status"),
   previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close"), previewStatus: $("#preview-status"), inactive: $("#inactive"),
   header: document.querySelector("header"),
-  stepPaste: $("#step-paste"), splitting: $("#splitting"), stepScenes: $("#step-scenes"), stepLink: $("#step-link")
+  stepPaste: $("#step-paste"), splitting: $("#splitting"), stepScenes: $("#step-scenes"), stepLink: $("#step-link"), backPaste: $("#back-paste")
 };
 let scenes = [];
 let states = {};
@@ -253,6 +253,15 @@ elements.split.addEventListener("click", async () => {
 elements.refresh.addEventListener("click", () => {
   elements.refreshWarning.hidden = false;
   setRunStatus("Confirm you want to clear everything.", true);
+});
+elements.backPaste.addEventListener("click", () => {
+  elements.refreshWarning.hidden = true;
+  elements.stepPaste.hidden = false;
+  elements.stepScenes.hidden = true;
+  elements.stepLink.hidden = true;
+  elements.header.hidden = false;
+  elements.runStatus.hidden = false;
+  setRunStatus("Back to pasting — your scenes and links are saved.");
 });
 elements.refreshCancel.addEventListener("click", () => {
   elements.refreshWarning.hidden = true;
