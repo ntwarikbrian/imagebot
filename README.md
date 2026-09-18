@@ -14,6 +14,8 @@ per-scene queue of image prompts for `https://flow.google.com/`.
   **Pause** hides the pickers so you can keep prompting or improving in Flow, while the
   scene↔image links stay saved and linked images stay faintly marked.
 - Your timeline, queue, checkmarks, and links persist between sessions and browser restarts.
+- **Refresh** wipes the panel back to a clean slate: it asks for confirmation, then clears the
+  timeline, scenes, links, and all saved data, and removes link badges from the Flow page.
 - Includes the original Flow automation runner (`src/content/flow-runner.js`) that can fill
   the Flow prompt box, click Generate, wait for each new image, and download it.
 

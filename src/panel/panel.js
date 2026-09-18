@@ -1,6 +1,8 @@
 const $ = (selector) => document.querySelector(selector);
 const elements = {
-  timeline: $("#timeline"), split: $("#split"), link: $("#link"), pause: $("#pause"),
+  timeline: $("#timeline"), split: $("#split"), refresh: $("#refresh"),
+  refreshWarning: $("#refresh-warning"), refreshCancel: $("#refresh-cancel"), refreshConfirm: $("#refresh-confirm"),
+  link: $("#link"), pause: $("#pause"),
   scenes: $("#scenes"), siteStatus: $("#site-status"), runStatus: $("#run-status")
 };
 let scenes = [];
@@ -154,6 +156,7 @@ async function checkTab() {
 }
 
 elements.split.addEventListener("click", () => {
+  elements.refreshWarning.hidden = true;
   scenes = parseTimeline(elements.timeline.value);
   states = {};
   links = {};
@@ -163,7 +166,31 @@ elements.split.addEventListener("click", () => {
   saveState();
   syncOverlay();
 });
+elements.refresh.addEventListener("click", () => {
+  elements.refreshWarning.hidden = false;
+  setRunStatus("Confirm you want to clear everything.", true);
+});
+elements.refreshCancel.addEventListener("click", () => {
+  elements.refreshWarning.hidden = true;
+  setRunStatus("Refreshing cancelled — nothing was cleared.");
+});
+elements.refreshConfirm.addEventListener("click", async () => {
+  scenes = [];
+  states = {};
+  links = {};
+  activeSceneId = null;
+  linkMode = false;
+  paused = false;
+  elements.timeline.value = "";
+  await chrome.storage.local.remove(STORAGE_KEY);
+  elements.refreshWarning.hidden = true;
+  renderScenes();
+  updateLinkButtons();
+  setRunStatus("Cleared all saved data. Paste a new timeline.");
+  syncOverlay();
+});
 elements.link.addEventListener("click", () => {
+  elements.refreshWarning.hidden = true;
   linkMode = true;
   paused = false;
   updateLinkButtons();
@@ -172,6 +199,7 @@ elements.link.addEventListener("click", () => {
   syncOverlay();
 });
 elements.pause.addEventListener("click", () => {
+  elements.refreshWarning.hidden = true;
   linkMode = false;
   paused = true;
   renderScenes();
