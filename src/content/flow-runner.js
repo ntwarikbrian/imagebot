@@ -174,28 +174,32 @@
   async function downloadLinkedImages(scenes) {
     const total = scenes.length;
     let downloaded = 0;
+    let lastDownloadId = null;
+    const failed = [];
     for (let index = 0; index < total; index += 1) {
       const { id, url } = scenes[index];
       chrome.runtime.sendMessage({ type: "DOWNLOAD_PROGRESS", done: index, total, id: id ?? null }).catch(() => {});
       if (!id || !url) continue;
+      const filename = `image${id}.${extensionFor(url)}`;
+      let response;
       try {
-        const ext = extensionFor(url);
-        const filename = `image${id}.${ext}`;
-        const mime = ext === "jpg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
-        const bytes = (await fetchToBytes(url)) || (await liveToBytes(url));
-        let response;
-        if (bytes) {
-          response = await chrome.runtime.sendMessage({ type: "DOWNLOAD_BYTES", data: bytes, filename, mime });
-        } else if (/^https?:/i.test(url)) {
+        if (/^https?:/i.test(url)) {
           response = await chrome.runtime.sendMessage({ type: "DOWNLOAD_IMAGE", url, filename });
         } else {
-          continue;
+          const bytes = (await fetchToBytes(url)) || (await liveToBytes(url));
+          if (!bytes) throw new Error("Image bytes unavailable from this page (it may have expired)");
+          const ext = extensionFor(url);
+          response = await chrome.runtime.sendMessage({ type: "DOWNLOAD_BYTES", data: bytes, filename, mime: ext === "jpg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png" });
         }
-        if (response?.ok) downloaded += 1;
-      } catch { /* skip row */ }
+        if (!response?.ok) throw new Error(response?.error || "Download was refused");
+        downloaded += 1;
+        if (response.downloadId) lastDownloadId = response.downloadId;
+      } catch (error) {
+        failed.push({ id, reason: String(error?.message || error || "Download failed").slice(0, 120) });
+      }
     }
     chrome.runtime.sendMessage({ type: "DOWNLOAD_PROGRESS", done: total, total, id: null }).catch(() => {});
-    return { ok: true, downloaded };
+    return { ok: true, downloaded, lastDownloadId, failed };
   }
   async function generateScene(scene, index) {
     const input = findPromptInput();

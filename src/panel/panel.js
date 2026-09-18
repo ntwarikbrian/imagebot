@@ -271,12 +271,19 @@ elements.downloadAll.addEventListener("click", async () => {
   if (!targets.length) { setRunStatus("No linked images to download.", true); return; }
   downloading = true;
   updateLinkButtons();
-  setRunStatus(`Downloading ${targets.length} linked image${targets.length === 1 ? "" : "s"}…`);
+  setRunStatus(`Downloading ${targets.length} linked image${targets.length === 1 ? "" : "s"} — check your Downloads folder…`);
+  chrome.downloads.showDefaultFolder();
   const response = await send({ type: "DOWNLOAD_ALL", scenes: targets }).catch(() => null);
   downloading = false;
   updateLinkButtons();
-  if (!response?.ok) setRunStatus(response?.error || "Could not download the linked images.", true);
-  else setRunStatus(`Downloaded ${response.downloaded}/${targets.length} linked image${targets.length === 1 ? "" : "s"}.`, response.downloaded < targets.length);
+  if (!response?.ok) { setRunStatus(response?.error || "Could not download the linked images.", true); return; }
+  const saved = response.downloaded ?? 0;
+  let status = `Saved ${saved}/${targets.length} linked image${targets.length === 1 ? "" : "s"}.`;
+  if (response.failed?.length) status += ` Skipped row${response.failed.length === 1 ? "" : "s"}: ${response.failed.map((item) => `image${item.id}`).join(", ")}.`;
+  setRunStatus(status, saved < targets.length);
+  if (response.lastDownloadId != null) {
+    setTimeout(() => chrome.downloads.show(response.lastDownloadId), 800);
+  }
 });
 elements.previewClose.addEventListener("click", closePreview);
 elements.previewBackdrop.addEventListener("click", (event) => { if (event.target === elements.previewBackdrop) closePreview(); });
