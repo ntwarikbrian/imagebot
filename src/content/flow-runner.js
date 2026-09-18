@@ -145,6 +145,58 @@
     if (!control) throw new Error("The generated image had no downloadable URL or Download button");
     control.click();
   }
+  const fetchToBytes = async (url) => {
+    if (!/^(https?:|blob:)/i.test(url)) return null;
+    const response = await fetch(url, { credentials: "include", cache: "no-store" });
+    if (!response.ok) return null;
+    return response.arrayBuffer();
+  };
+  const liveToBytes = async (url) => {
+    const image = overlay.elements.get(url);
+    if (!image?.complete || image.naturalWidth <= 0) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+    context.drawImage(image, 0, 0);
+    try {
+      const mime = /\.jpe?g([?#]|$)/i.test(url) ? "image/jpeg" : "image/png";
+      const dataUrl = canvas.toDataURL(mime, mime === "image/jpeg" ? 0.92 : undefined);
+      const matches = /^data:[^;,]+;base64,(.*)$/s.exec(dataUrl);
+      if (!matches) return null;
+      const binary = atob(matches[1]);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+      return bytes.buffer;
+    } catch { return null; }
+  };
+  async function downloadLinkedImages(scenes) {
+    const total = scenes.length;
+    let downloaded = 0;
+    for (let index = 0; index < total; index += 1) {
+      const { id, url } = scenes[index];
+      chrome.runtime.sendMessage({ type: "DOWNLOAD_PROGRESS", done: index, total, id: id ?? null }).catch(() => {});
+      if (!id || !url) continue;
+      try {
+        const ext = extensionFor(url);
+        const filename = `image${id}.${ext}`;
+        const mime = ext === "jpg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
+        const bytes = (await fetchToBytes(url)) || (await liveToBytes(url));
+        let response;
+        if (bytes) {
+          response = await chrome.runtime.sendMessage({ type: "DOWNLOAD_BYTES", data: bytes, filename, mime });
+        } else if (/^https?:/i.test(url)) {
+          response = await chrome.runtime.sendMessage({ type: "DOWNLOAD_IMAGE", url, filename });
+        } else {
+          continue;
+        }
+        if (response?.ok) downloaded += 1;
+      } catch { /* skip row */ }
+    }
+    chrome.runtime.sendMessage({ type: "DOWNLOAD_PROGRESS", done: total, total, id: null }).catch(() => {});
+    return { ok: true, downloaded };
+  }
   async function generateScene(scene, index) {
     const input = findPromptInput();
     if (!input) throw new Error("I could not find Flow’s prompt box. Click it once, then retry.");
@@ -216,6 +268,11 @@
     if (message?.type === "LINK_MODE") { applyOverlay(message); sendResponse({ ok: true }); return; }
     if (message?.type === "GET_STATUS") { sendResponse(status()); return; }
     if (message?.type === "STOP") { runner.stopRequested = true; report("Stopping after the current check…"); sendResponse({ ok: true }); return; }
+    if (message?.type === "DOWNLOAD_ALL") {
+      if (location.hostname !== FLOW_HOST) { sendResponse({ ok: false, error: "Not on flow.google.com." }); return; }
+      downloadLinkedImages(Array.isArray(message.scenes) ? message.scenes : []).then(sendResponse);
+      return true;
+    }
     if (message?.type === "GET_IMAGE") {
       if (location.hostname !== FLOW_HOST) { sendResponse({ ok: false, error: "Not on flow.google.com." }); return; }
       resolveImageData(String(message.url || "")).then(sendResponse);

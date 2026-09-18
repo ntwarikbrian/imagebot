@@ -15,6 +15,10 @@ per-scene queue of image prompts for `https://flow.google.com/`.
   which scene each image belongs to.
   **Pause** hides the pickers so you can keep prompting or improving in Flow, while the
   scene↔image links stay saved and linked images stay faintly marked (number still shown).
+- **Download all**: downloads every linked image in timeline order, saved as `image<N>.<ext>`
+  where `<N>` is the row number the image reference matches (e.g. `image3.png`, `image12.jpg`)
+  into your `flow-scenes/` folder. Unlinked rows and expired images are skipped; the final
+  count is shown in the panel status.
 - Your timeline, queue, checkmarks, and links persist between sessions and browser restarts.
 - **Refresh** wipes the panel back to a clean slate: it asks for confirmation, then clears the
   timeline, scenes, links, and all saved data, and removes link badges from the Flow page.

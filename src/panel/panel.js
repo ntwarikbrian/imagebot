@@ -2,7 +2,7 @@ const $ = (selector) => document.querySelector(selector);
 const elements = {
   timeline: $("#timeline"), split: $("#split"), refresh: $("#refresh"),
   refreshWarning: $("#refresh-warning"), refreshCancel: $("#refresh-cancel"), refreshConfirm: $("#refresh-confirm"),
-  link: $("#link"), pause: $("#pause"),
+  link: $("#link"), pause: $("#pause"), downloadAll: $("#download-all"),
   scenes: $("#scenes"), siteStatus: $("#site-status"), runStatus: $("#run-status"),
   previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close"), previewStatus: $("#preview-status"), inactive: $("#inactive")
 };
@@ -14,6 +14,7 @@ let linkMode = false;
 let paused = false;
 let onFlow = false;
 let activeTabId = null;
+let downloading = false;
 const STORAGE_KEY = "flowSceneRunner";
 const imageCache = new Map();
 
@@ -186,6 +187,7 @@ function syncOverlay() {
 function updateLinkButtons() {
   elements.link.disabled = !onFlow || linkMode;
   elements.pause.disabled = !onFlow || !linkMode;
+  elements.downloadAll.disabled = !onFlow || downloading || Object.keys(links).length === 0;
 }
 function updateActiveState() {
   elements.siteStatus.textContent = onFlow ? "Ready on flow.google.com" : "Open flow.google.com";
@@ -260,12 +262,30 @@ elements.pause.addEventListener("click", () => {
   saveState();
   syncOverlay();
 });
+elements.downloadAll.addEventListener("click", async () => {
+  elements.refreshWarning.hidden = true;
+  const targets = scenes.map((scene) => ({ id: scene.id, url: links[scene.id] })).filter((scene) => scene.url);
+  if (!targets.length) { setRunStatus("No linked images to download.", true); return; }
+  downloading = true;
+  updateLinkButtons();
+  setRunStatus(`Downloading ${targets.length} linked image${targets.length === 1 ? "" : "s"}…`);
+  const response = await send({ type: "DOWNLOAD_ALL", scenes: targets }).catch(() => null);
+  downloading = false;
+  updateLinkButtons();
+  if (!response?.ok) setRunStatus(response?.error || "Could not download the linked images.", true);
+  else setRunStatus(`Downloaded ${response.downloaded}/${targets.length} linked image${targets.length === 1 ? "" : "s"}.`, response.downloaded < targets.length);
+});
 elements.previewClose.addEventListener("click", closePreview);
 elements.previewBackdrop.addEventListener("click", (event) => { if (event.target === elements.previewBackdrop) closePreview(); });
 document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !elements.previewBackdrop.hidden) closePreview(); });
 elements.timeline.addEventListener("input", saveState);
 chrome.runtime.onMessage.addListener((message, sender) => {
-  if (sender.tab?.id !== activeTabId || message?.type !== "LINK_CLICK") return;
+  if (sender.tab?.id !== activeTabId) return;
+  if (message?.type === "DOWNLOAD_PROGRESS") {
+    setRunStatus(`Downloading linked images… ${message.done}/${message.total}${message.id != null ? ` (image ${message.id})` : ""}`);
+    return;
+  }
+  if (message?.type !== "LINK_CLICK") return;
   const sceneId = message.sceneId ?? activeSceneId;
   if (sceneId == null || !message.url) return;
   if (links[sceneId] === message.url) { unlinkScene(sceneId); return; }
