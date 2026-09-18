@@ -189,7 +189,9 @@ function syncOverlay() {
 function updateLinkButtons() {
   elements.link.disabled = !onFlow || linkMode;
   elements.pause.disabled = !onFlow || !linkMode;
-  elements.downloadAll.disabled = !onFlow || downloading || Object.keys(links).length === 0;
+  const count = Object.keys(links).length;
+  elements.downloadAll.textContent = count ? `Download all (${count})` : "Download all";
+  elements.downloadAll.disabled = !onFlow || downloading || count === 0;
 }
 function updateActiveState() {
   elements.siteStatus.textContent = onFlow ? "Ready on flow.google.com" : "Open flow.google.com";
