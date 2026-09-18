@@ -11,8 +11,10 @@ per-scene queue of image prompts for `https://flow.google.com/`.
 - **Link images**: turn on **Link**, click a scene's circle, then click that scene's reference
   image on the Flow page. Linking marks the scene done and moves to the next scene
   automatically; click a linked circle to unlink. Circles appear only while Link mode is on.
+  Linked images show a green tick with the matching timeline row number, so you always know
+  which scene each image belongs to.
   **Pause** hides the pickers so you can keep prompting or improving in Flow, while the
-  scene↔image links stay saved and linked images stay faintly marked.
+  scene↔image links stay saved and linked images stay faintly marked (number still shown).
 - Your timeline, queue, checkmarks, and links persist between sessions and browser restarts.
 - **Refresh** wipes the panel back to a clean slate: it asks for confirmation, then clears the
   timeline, scenes, links, and all saved data, and removes link badges from the Flow page.
