@@ -4,7 +4,7 @@ const elements = {
   refreshWarning: $("#refresh-warning"), refreshCancel: $("#refresh-cancel"), refreshConfirm: $("#refresh-confirm"),
   link: $("#link"), pause: $("#pause"),
   scenes: $("#scenes"), siteStatus: $("#site-status"), runStatus: $("#run-status"),
-  previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close")
+  previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close"), previewStatus: $("#preview-status")
 };
 let scenes = [];
 let states = {};
@@ -15,6 +15,7 @@ let paused = false;
 let onFlow = false;
 let activeTabId = null;
 const STORAGE_KEY = "flowSceneRunner";
+const imageCache = new Map();
 
 function parseTimeline(text) {
   const marker = /\*\*\(([^)]+)\)\*\*\s*/g;
@@ -38,10 +39,21 @@ function renderScenes() {
     thumb.alt = "Linked image reference";
     const linkedUrl = links[scene.id];
     if (linkedUrl) {
-      thumb.src = linkedUrl;
+      thumb.classList.add("empty");
       thumb.title = "View linked image";
-      thumb.addEventListener("click", () => showPreview(linkedUrl));
-      thumb.addEventListener("error", () => { thumb.classList.add("empty"); thumb.removeAttribute("src"); thumb.title = ""; });
+      thumb.addEventListener("click", () => { showPreview(linkedUrl); });
+      const cached = imageCache.get(linkedUrl);
+      if (cached) {
+        thumb.src = cached;
+        thumb.classList.remove("empty");
+      } else {
+        resolveImage(linkedUrl).then((dataUrl) => {
+          if (!dataUrl || !thumb.isConnected) return;
+          thumb.src = dataUrl;
+          thumb.classList.remove("empty");
+        });
+      }
+      thumb.addEventListener("error", () => { thumb.classList.add("empty"); thumb.removeAttribute("src"); });
     } else {
       thumb.classList.add("empty");
     }
@@ -108,14 +120,29 @@ async function copyPrompt(scene, button) {
     setTimeout(() => { button.textContent = "⧉"; button.classList.remove("copied"); }, 1200);
   } catch { button.classList.add("copied"); }
 }
-function showPreview(url) {
+async function resolveImage(url) {
+  if (!url) return null;
+  const cached = imageCache.get(url);
+  if (cached) return cached;
+  const response = await send({ type: "GET_IMAGE", url }).catch(() => null);
+  const dataUrl = response?.ok ? response.dataUrl : null;
+  if (dataUrl) imageCache.set(url, dataUrl);
+  return dataUrl;
+}
+async function showPreview(url) {
   if (!url) return;
-  elements.previewImage.src = url;
+  elements.previewImage.removeAttribute("src");
+  elements.previewStatus.hidden = true;
   elements.previewBackdrop.hidden = false;
+  const dataUrl = await resolveImage(url);
+  if (elements.previewBackdrop.hidden) return;
+  if (dataUrl) elements.previewImage.src = dataUrl;
+  else elements.previewStatus.hidden = false;
 }
 function closePreview() {
   elements.previewBackdrop.hidden = true;
   elements.previewImage.removeAttribute("src");
+  elements.previewStatus.hidden = true;
 }
 function setRunStatus(message, error = false) { elements.runStatus.textContent = message; elements.runStatus.classList.toggle("error", error); }
 async function saveState() {
@@ -170,6 +197,7 @@ async function checkTab() {
   elements.split.disabled = !onFlow;
   updateLinkButtons();
   syncOverlay();
+  if (scenes.length) renderScenes();
 }
 
 elements.split.addEventListener("click", () => {
@@ -178,6 +206,7 @@ elements.split.addEventListener("click", () => {
   states = {};
   links = {};
   activeSceneId = null;
+  imageCache.clear();
   renderScenes();
   setRunStatus(scenes.length ? `${scenes.length} scene${scenes.length === 1 ? "" : "s"} ready for review.` : "No scene markers found. Use **(start–end)** before each prompt.", scenes.length === 0);
   saveState();
@@ -198,6 +227,7 @@ elements.refreshConfirm.addEventListener("click", async () => {
   activeSceneId = null;
   linkMode = false;
   paused = false;
+  imageCache.clear();
   elements.timeline.value = "";
   await chrome.storage.local.remove(STORAGE_KEY);
   elements.refreshWarning.hidden = true;

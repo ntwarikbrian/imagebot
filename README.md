@@ -19,6 +19,9 @@ per-scene queue of image prompts for `https://flow.google.com/`.
 - Each scene row shows a small reference image of its linked photo (before the copy button);
   click it for a larger pop-up preview. Link/pause mode is remembered across browser refreshes,
   so you reopen exactly where you left off with links intact.
+- Row thumbnails and the pop-up preview are read directly from the Flow page (the panel can't
+  load Flow's authenticated or temporary image URLs on its own), so they stay visible while the
+  image is on screen; links themselves are never lost.
 - Includes the original Flow automation runner (`src/content/flow-runner.js`) that can fill
   the Flow prompt box, click Generate, wait for each new image, and download it.
 

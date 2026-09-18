@@ -171,10 +171,47 @@
     const failed = Object.values(runner.states).filter((item) => item.state === "failed").length;
     report(runner.stopRequested ? "Stopped. Completed scenes remain downloaded." : failed ? `Finished with ${failed} scene${failed === 1 ? "" : "s"} needing attention.` : `Finished all ${runner.scenes.length} scenes.` , failed > 0);
   }
+  const imageToDataUrl = async (image, url) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context || !canvas.width || !canvas.height) return null;
+    context.drawImage(image, 0, 0);
+    try { return canvas.toDataURL(/\.jpe?g([?#]|$)/i.test(url) ? "image/jpeg" : "image/png", /\.jpe?g([?#]|$)/i.test(url) ? 0.92 : undefined); }
+    catch { return null; }
+  };
+  const fetchToDataUrl = async (url) => {
+    const response = await fetch(url, { credentials: "include", cache: "no-store" });
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  };
+  const resolveImageData = async (url) => {
+    const live = overlay.elements.get(url);
+    if (live?.complete && live.naturalWidth > 0) {
+      const dataUrl = await imageToDataUrl(live, url);
+      if (dataUrl) return { ok: true, dataUrl };
+    }
+    try {
+      const dataUrl = await fetchToDataUrl(url);
+      if (dataUrl) return { ok: true, dataUrl };
+    } catch { /* fall through */ }
+    return { ok: false, error: "Could not read that image from the Flow page." };
+  };
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message?.type === "LINK_MODE") { applyOverlay(message); sendResponse({ ok: true }); return; }
     if (message?.type === "GET_STATUS") { sendResponse(status()); return; }
     if (message?.type === "STOP") { runner.stopRequested = true; report("Stopping after the current check…"); sendResponse({ ok: true }); return; }
+    if (message?.type === "GET_IMAGE") {
+      resolveImageData(String(message.url || "")).then(sendResponse);
+      return true;
+    }
     if (message?.type === "START") {
       if (location.hostname !== FLOW_HOST) { sendResponse({ ok: false, error: "This runner only works on flow.google.com." }); return; }
       if (runner.running) { sendResponse({ ok: false, error: "A run is already active." }); return; }
