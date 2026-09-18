@@ -7,6 +7,68 @@
   const status = () => ({ running: runner.running, states: runner.states, message: runner.message, error: runner.error });
   const report = (message, error = false) => { runner.message = message; runner.error = error; chrome.runtime.sendMessage({ type: "RUN_STATUS", status: status() }).catch(() => {}); };
 
+  const overlay = { mode: "off", links: {}, activeSceneId: null, layer: null, timer: null, elements: new Map() };
+  const overlayOnScroll = () => requestAnimationFrame(renderOverlayBadges);
+  function injectOverlayStyles() {
+    if (!document.getElementById("fsr-overlay-style")) {
+      const style = document.createElement("style");
+      style.id = "fsr-overlay-style";
+      style.textContent = ".fsr-overlay-layer{position:fixed;inset:0;pointer-events:none;z-index:2147483646}.fsr-badge{position:fixed;width:18px;height:18px;border:2px solid #4f6df5;background:#4f6df5;border-radius:50%;color:#fff;font:700 10px/1 ui-sans-serif,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;pointer-events:auto;box-shadow:0 1px 3px rgba(0,0,0,.5)}.fsr-badge.marked{background:#2f6b3f;border-color:#8be1a3}.fsr-badge.idle{background:rgba(47,107,63,.22);border-color:rgba(139,225,163,.5);color:#d4ffe0;pointer-events:none;cursor:default}";
+      (document.head || document.documentElement).appendChild(style);
+    }
+  }
+  function renderOverlayBadges() {
+    const layer = overlay.layer;
+    if (!layer || overlay.mode === "off") return;
+    layer.replaceChildren();
+    overlay.elements.clear();
+    const markedUrls = new Set(Object.values(overlay.links));
+    for (const image of generatedImages()) {
+      const url = image.currentSrc || image.src;
+      if (!url) continue;
+      overlay.elements.set(url, image);
+      const marked = markedUrls.has(url);
+      if (!marked && overlay.mode === "paused") continue;
+      const rect = image.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2 || rect.right < 0 || rect.bottom < 0 || rect.top > innerHeight || rect.left > innerWidth) continue;
+      const badge = document.createElement("button");
+      badge.type = "button";
+      badge.className = `fsr-badge${marked ? " marked" : ""}${overlay.mode === "paused" ? " idle" : ""}`;
+      if (marked) badge.textContent = "✓";
+      badge.style.left = `${Math.max(0, rect.right - 24)}px`;
+      badge.style.top = `${Math.max(0, rect.top + 8)}px`;
+      if (overlay.mode === "selecting") badge.addEventListener("click", () => { chrome.runtime.sendMessage({ type: "LINK_CLICK", sceneId: overlay.activeSceneId, url }).catch(() => {}); });
+      else badge.style.pointerEvents = "none";
+      layer.appendChild(badge);
+    }
+  }
+  function applyOverlay(message) {
+    overlay.mode = String(message?.mode || "off");
+    overlay.links = message?.links && typeof message.links === "object" ? message.links : {};
+    overlay.activeSceneId = message?.activeSceneId ?? null;
+    if (overlay.mode === "off") { stopOverlay(); return; }
+    injectOverlayStyles();
+    if (!overlay.layer) {
+      overlay.layer = document.createElement("div");
+      overlay.layer.className = "fsr-overlay-layer";
+      document.documentElement.appendChild(overlay.layer);
+    }
+    if (!overlay.timer) {
+      overlay.timer = setInterval(renderOverlayBadges, 1000);
+      window.addEventListener("scroll", overlayOnScroll, true);
+      window.addEventListener("resize", renderOverlayBadges);
+    }
+    renderOverlayBadges();
+  }
+  function stopOverlay() {
+    if (overlay.timer) { clearInterval(overlay.timer); overlay.timer = null; }
+    window.removeEventListener("scroll", overlayOnScroll, true);
+    window.removeEventListener("resize", renderOverlayBadges);
+    overlay.layer?.remove();
+    overlay.layer = null;
+    overlay.elements.clear();
+  }
+
   function inputScore(element) {
     if (!isVisible(element) || element.disabled || element.readOnly) return -100;
     const hint = textOf(element); let score = 0;
@@ -110,6 +172,7 @@
     report(runner.stopRequested ? "Stopped. Completed scenes remain downloaded." : failed ? `Finished with ${failed} scene${failed === 1 ? "" : "s"} needing attention.` : `Finished all ${runner.scenes.length} scenes.` , failed > 0);
   }
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message?.type === "LINK_MODE") { applyOverlay(message); sendResponse({ ok: true }); return; }
     if (message?.type === "GET_STATUS") { sendResponse(status()); return; }
     if (message?.type === "STOP") { runner.stopRequested = true; report("Stopping after the current check…"); sendResponse({ ok: true }); return; }
     if (message?.type === "START") {
