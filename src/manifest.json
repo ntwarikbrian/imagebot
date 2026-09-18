@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Flow Scene Runner",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Split a storyboard timeline into per-scene prompts with an organized, persistent queue.",
   "permissions": ["activeTab", "downloads", "scripting", "storage", "tabs", "sidePanel"],
   "host_permissions": ["https://flow.google.com/*"],

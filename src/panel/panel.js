@@ -4,7 +4,7 @@ const elements = {
   refreshWarning: $("#refresh-warning"), refreshCancel: $("#refresh-cancel"), refreshConfirm: $("#refresh-confirm"),
   link: $("#link"), pause: $("#pause"),
   scenes: $("#scenes"), siteStatus: $("#site-status"), runStatus: $("#run-status"),
-  previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close"), previewStatus: $("#preview-status")
+  previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close"), previewStatus: $("#preview-status"), inactive: $("#inactive")
 };
 let scenes = [];
 let states = {};
@@ -187,16 +187,20 @@ function updateLinkButtons() {
   elements.link.disabled = !onFlow || linkMode;
   elements.pause.disabled = !onFlow || !linkMode;
 }
+function updateActiveState() {
+  elements.siteStatus.textContent = onFlow ? "Ready on flow.google.com" : "Open flow.google.com";
+  elements.siteStatus.className = `status ${onFlow ? "ok" : "bad"}`;
+  elements.inactive.hidden = onFlow;
+  elements.split.disabled = !onFlow;
+  updateLinkButtons();
+}
 
 async function checkTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   activeTabId = tab?.id ?? null;
   onFlow = /^https:\/\/flow\.google\.com\//.test(tab?.url || "");
-  elements.siteStatus.textContent = onFlow ? "Ready on flow.google.com" : "Open flow.google.com first";
-  elements.siteStatus.className = `status ${onFlow ? "ok" : "bad"}`;
-  elements.split.disabled = !onFlow;
-  updateLinkButtons();
-  syncOverlay();
+  updateActiveState();
+  if (onFlow) syncOverlay();
   if (scenes.length) renderScenes();
 }
 
@@ -277,4 +281,11 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 });
 (async () => { await loadState(); checkTab(); })();
 chrome.tabs.onActivated.addListener(checkTab);
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (tabId !== activeTabId || changeInfo.status !== "complete") return;
+  onFlow = /^https:\/\/flow\.google\.com\//.test(tab.url || "");
+  updateActiveState();
+  if (onFlow) syncOverlay();
+  if (scenes.length) renderScenes();
+});
 chrome.windows.onFocusChanged.addListener((windowId) => { if (windowId !== chrome.windows.WINDOW_ID_NONE) checkTab(); });

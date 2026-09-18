@@ -43,6 +43,7 @@
     }
   }
   function applyOverlay(message) {
+    if (location.hostname !== FLOW_HOST) return;
     overlay.mode = String(message?.mode || "off");
     overlay.links = message?.links && typeof message.links === "object" ? message.links : {};
     overlay.activeSceneId = message?.activeSceneId ?? null;
@@ -209,6 +210,7 @@
     if (message?.type === "GET_STATUS") { sendResponse(status()); return; }
     if (message?.type === "STOP") { runner.stopRequested = true; report("Stopping after the current check…"); sendResponse({ ok: true }); return; }
     if (message?.type === "GET_IMAGE") {
+      if (location.hostname !== FLOW_HOST) { sendResponse({ ok: false, error: "Not on flow.google.com." }); return; }
       resolveImageData(String(message.url || "")).then(sendResponse);
       return true;
     }
