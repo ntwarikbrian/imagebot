@@ -9,41 +9,60 @@
   <body>
     <main>
       <header>
-        <h1>Flow Scene Runner</h1>
+        <div class="brand">
+          <span class="logo"></span>
+          <h1>Flow Scene Runner</h1>
+        </div>
         <p id="site-status" class="status">Checking Flow…</p>
       </header>
 
-      <label for="timeline">Storyboard timeline</label>
-      <textarea id="timeline" spellcheck="false" placeholder="Paste scenes marked like **(0:00–0:07)** prompt text"></textarea>
+      <p id="run-status" class="run-status">Paste a timeline, then split it.</p>
 
-      <div class="actions">
-        <button id="split" class="secondary">Split scenes</button>
-        <button id="refresh" class="danger">Refresh</button>
-      </div>
+      <section class="step step-paste" id="step-paste">
+        <div id="splitting" class="splitting" hidden>
+          <span class="spinner"></span>
+          <p>Splitting scenes…</p>
+        </div>
+        <div class="step-head">
+          <span class="step-num">1</span>
+          <div class="step-title">
+            <h2>Paste your timeline</h2>
+            <p class="step-sub">Mark each scene like <code>**(0:00–0:07)**</code> followed by its prompt</p>
+          </div>
+        </div>
+        <textarea id="timeline" spellcheck="false" placeholder="Paste scenes marked like **(0:00–0:07)** prompt text"></textarea>
+        <div class="actions">
+          <button id="split" class="primary">Split scenes</button>
+          <button id="refresh" class="ghost">Refresh</button>
+        </div>
+      </section>
 
       <div id="refresh-warning" class="warning" role="alert" hidden>
         <p><strong>Warning:</strong> this permanently clears your timeline, scenes, links and all saved data.</p>
         <div class="actions">
-          <button id="refresh-cancel" class="secondary">Cancel</button>
+          <button id="refresh-cancel" class="ghost">Cancel</button>
           <button id="refresh-confirm" class="danger">Clear everything</button>
         </div>
       </div>
 
-      <p class="row-label">Link images</p>
-      <div class="actions">
-        <button id="link" class="link" disabled>Link</button>
-        <button id="pause" class="pause" disabled>Pause</button>
-      </div>
-
-      <div class="actions">
-        <button id="download-all" class="download" disabled>Download all</button>
-      </div>
-
-      <section aria-live="polite">
-        <p id="run-status" class="run-status">Paste a timeline, then split it.</p>
+      <section class="step step-scenes" id="step-scenes" hidden>
         <ol id="scenes" class="scenes"></ol>
       </section>
-      <p class="hint">Choose <strong>Link</strong>, then click a scene’s circle and click that scene’s reference image on Flow — the scene is marked done automatically. Click a linked circle to unlink. <strong>Pause</strong> hides the pickers so you can keep working; links stay.</p>
+
+      <section class="step step-link" id="step-link" hidden>
+        <div class="step-head">
+          <span class="step-num">3</span>
+          <div class="step-title">
+            <h2>Link images</h2>
+            <p class="step-sub">Match each scene to its Flow image</p>
+          </div>
+          <button id="download-all" class="download pill" disabled>Download all</button>
+        </div>
+        <div class="actions">
+          <button id="link" class="link" disabled>Link</button>
+          <button id="pause" class="pause" disabled>Pause</button>
+        </div>
+      </section>
     </main>
 
     <div id="preview-backdrop" hidden>

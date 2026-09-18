@@ -1,10 +1,13 @@
 const $ = (selector) => document.querySelector(selector);
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const elements = {
   timeline: $("#timeline"), split: $("#split"), refresh: $("#refresh"),
   refreshWarning: $("#refresh-warning"), refreshCancel: $("#refresh-cancel"), refreshConfirm: $("#refresh-confirm"),
   link: $("#link"), pause: $("#pause"), downloadAll: $("#download-all"),
   scenes: $("#scenes"), siteStatus: $("#site-status"), runStatus: $("#run-status"),
-  previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close"), previewStatus: $("#preview-status"), inactive: $("#inactive")
+  previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close"), previewStatus: $("#preview-status"), inactive: $("#inactive"),
+  header: document.querySelector("header"),
+  stepPaste: $("#step-paste"), splitting: $("#splitting"), stepScenes: $("#step-scenes"), stepLink: $("#step-link")
 };
 let scenes = [];
 let states = {};
@@ -29,6 +32,13 @@ function parseTimeline(text) {
 }
 
 function renderScenes() {
+  const hasScenes = scenes.length > 0;
+  elements.stepPaste.hidden = hasScenes;
+  elements.stepScenes.hidden = !hasScenes;
+  elements.stepLink.hidden = !hasScenes;
+  elements.header.hidden = hasScenes;
+  elements.runStatus.hidden = hasScenes;
+  clearTimeout(setRunStatus.timer);
   elements.scenes.replaceChildren(...scenes.map((scene) => {
     const item = document.createElement("li");
     const linked = Boolean(links[scene.id]);
@@ -77,7 +87,10 @@ function renderScenes() {
     const time = document.createElement("span");
     time.className = "time";
     time.textContent = scene.timing;
-    item.append(thumb, copy, time, document.createTextNode(scene.prompt));
+    const prompt = document.createElement("span");
+    prompt.className = "prompt";
+    prompt.textContent = scene.prompt;
+    item.append(thumb, copy, time, prompt);
     item.addEventListener("click", (event) => {
       if (event.target.closest("button") || event.target.closest("img")) return;
       activeSceneId = activeSceneId === scene.id ? null : scene.id;
@@ -146,7 +159,15 @@ function closePreview() {
   elements.previewImage.removeAttribute("src");
   elements.previewStatus.hidden = true;
 }
-function setRunStatus(message, error = false) { elements.runStatus.textContent = message; elements.runStatus.classList.toggle("error", error); }
+function setRunStatus(message, error = false) {
+  elements.runStatus.textContent = message;
+  elements.runStatus.classList.toggle("error", error);
+  if (scenes.length && !error) {
+    elements.runStatus.hidden = false;
+    clearTimeout(setRunStatus.timer);
+    setRunStatus.timer = setTimeout(() => { elements.runStatus.hidden = true; }, 4000);
+  }
+}
 async function saveState() {
   await chrome.storage.local.set({ [STORAGE_KEY]: {
     timeline: elements.timeline.value,
@@ -210,15 +231,21 @@ async function checkTab() {
   if (scenes.length) renderScenes();
 }
 
-elements.split.addEventListener("click", () => {
+elements.split.addEventListener("click", async () => {
   elements.refreshWarning.hidden = true;
-  scenes = parseTimeline(elements.timeline.value);
+  elements.split.disabled = true;
+  elements.splitting.hidden = false;
+  setRunStatus("Splitting scenes…");
+  await delay(800);
+  const parsed = parseTimeline(elements.timeline.value);
+  scenes = parsed;
   states = {};
   links = {};
   activeSceneId = null;
   imageCache.clear();
+  elements.splitting.hidden = true;
+  elements.split.disabled = false;
   renderScenes();
-  updateLinkButtons();
   setRunStatus(scenes.length ? `${scenes.length} scene${scenes.length === 1 ? "" : "s"} ready for review.` : "No scene markers found. Use **(start–end)** before each prompt.", scenes.length === 0);
   saveState();
   syncOverlay();
