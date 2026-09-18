@@ -3,7 +3,8 @@ const elements = {
   timeline: $("#timeline"), split: $("#split"), refresh: $("#refresh"),
   refreshWarning: $("#refresh-warning"), refreshCancel: $("#refresh-cancel"), refreshConfirm: $("#refresh-confirm"),
   link: $("#link"), pause: $("#pause"),
-  scenes: $("#scenes"), siteStatus: $("#site-status"), runStatus: $("#run-status")
+  scenes: $("#scenes"), siteStatus: $("#site-status"), runStatus: $("#run-status"),
+  previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close")
 };
 let scenes = [];
 let states = {};
@@ -32,6 +33,18 @@ function renderScenes() {
     const state = linked ? "done" : (states[scene.id]?.state || "pending");
     item.className = scene.id === activeSceneId ? `${state} active` : state;
     item.dataset.id = scene.id;
+    const thumb = document.createElement("img");
+    thumb.className = "thumb";
+    thumb.alt = "Linked image reference";
+    const linkedUrl = links[scene.id];
+    if (linkedUrl) {
+      thumb.src = linkedUrl;
+      thumb.title = "View linked image";
+      thumb.addEventListener("click", () => showPreview(linkedUrl));
+      thumb.addEventListener("error", () => { thumb.classList.add("empty"); thumb.removeAttribute("src"); thumb.title = ""; });
+    } else {
+      thumb.classList.add("empty");
+    }
     if (linkMode) {
       const check = document.createElement("button");
       check.type = "button";
@@ -48,19 +61,10 @@ function renderScenes() {
     copy.setAttribute("aria-label", "Copy scene prompt");
     copy.textContent = "⧉";
     copy.addEventListener("click", () => copyPrompt(scene, copy));
-    const thumb = document.createElement("img");
-    thumb.className = "thumb";
-    thumb.alt = "Linked image";
-    if (links[scene.id]) {
-      thumb.src = links[scene.id];
-      thumb.addEventListener("error", () => thumb.remove());
-    } else {
-      thumb.style.display = "none";
-    }
     const time = document.createElement("span");
     time.className = "time";
     time.textContent = scene.timing;
-    item.append(copy, thumb, time, document.createTextNode(scene.prompt));
+    item.append(thumb, copy, time, document.createTextNode(scene.prompt));
     item.addEventListener("click", (event) => {
       if (event.target.closest("button") || event.target.closest("img")) return;
       activeSceneId = activeSceneId === scene.id ? null : scene.id;
@@ -104,13 +108,24 @@ async function copyPrompt(scene, button) {
     setTimeout(() => { button.textContent = "⧉"; button.classList.remove("copied"); }, 1200);
   } catch { button.classList.add("copied"); }
 }
+function showPreview(url) {
+  if (!url) return;
+  elements.previewImage.src = url;
+  elements.previewBackdrop.hidden = false;
+}
+function closePreview() {
+  elements.previewBackdrop.hidden = true;
+  elements.previewImage.removeAttribute("src");
+}
 function setRunStatus(message, error = false) { elements.runStatus.textContent = message; elements.runStatus.classList.toggle("error", error); }
 async function saveState() {
   await chrome.storage.local.set({ [STORAGE_KEY]: {
     timeline: elements.timeline.value,
     scenes,
     states,
-    links
+    links,
+    linkMode,
+    paused
   } });
 }
 async function loadState() {
@@ -121,6 +136,8 @@ async function loadState() {
   scenes = Array.isArray(saved.scenes) ? saved.scenes : [];
   states = saved.states && typeof saved.states === "object" ? saved.states : {};
   links = saved.links && typeof saved.links === "object" ? saved.links : {};
+  linkMode = saved.linkMode === true;
+  paused = saved.paused === true;
   if (scenes.length) {
     renderScenes();
     setRunStatus(`Restored ${scenes.length} scene${scenes.length === 1 ? "" : "s"} from your last session.`);
@@ -196,6 +213,7 @@ elements.link.addEventListener("click", () => {
   updateLinkButtons();
   renderScenes();
   setRunStatus(activeSceneId != null ? `Link mode on — click scene ${activeSceneId}’s reference image in Flow.` : "Link mode on — click a scene’s circle, then click its reference image in Flow.");
+  saveState();
   syncOverlay();
 });
 elements.pause.addEventListener("click", () => {
@@ -205,8 +223,12 @@ elements.pause.addEventListener("click", () => {
   renderScenes();
   updateLinkButtons();
   setRunStatus("Paused — linked images stay marked. Use Link to keep assigning.");
+  saveState();
   syncOverlay();
 });
+elements.previewClose.addEventListener("click", closePreview);
+elements.previewBackdrop.addEventListener("click", (event) => { if (event.target === elements.previewBackdrop) closePreview(); });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !elements.previewBackdrop.hidden) closePreview(); });
 elements.timeline.addEventListener("input", saveState);
 chrome.runtime.onMessage.addListener((message, sender) => {
   if (sender.tab?.id !== activeTabId || message?.type !== "LINK_CLICK") return;

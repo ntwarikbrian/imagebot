@@ -16,6 +16,9 @@ per-scene queue of image prompts for `https://flow.google.com/`.
 - Your timeline, queue, checkmarks, and links persist between sessions and browser restarts.
 - **Refresh** wipes the panel back to a clean slate: it asks for confirmation, then clears the
   timeline, scenes, links, and all saved data, and removes link badges from the Flow page.
+- Each scene row shows a small reference image of its linked photo (before the copy button);
+  click it for a larger pop-up preview. Link/pause mode is remembered across browser refreshes,
+  so you reopen exactly where you left off with links intact.
 - Includes the original Flow automation runner (`src/content/flow-runner.js`) that can fill
   the Flow prompt box, click Generate, wait for each new image, and download it.
 
