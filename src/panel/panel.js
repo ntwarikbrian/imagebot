@@ -7,7 +7,8 @@ const elements = {
   scenes: $("#scenes"), siteStatus: $("#site-status"), runStatus: $("#run-status"),
   previewBackdrop: $("#preview-backdrop"), previewImage: $("#preview-image"), previewClose: $("#preview-close"), previewStatus: $("#preview-status"), inactive: $("#inactive"),
   header: document.querySelector("header"),
-  stepPaste: $("#step-paste"), splitting: $("#splitting"), stepScenes: $("#step-scenes"), stepLink: $("#step-link"), backPaste: $("#back-paste")
+  stepPaste: $("#step-paste"), splitting: $("#splitting"), stepScenes: $("#step-scenes"), stepLink: $("#step-link"), backPaste: $("#back-paste"),
+  linkStatus: $("#link-status"), confetti: $("#confetti"), confettiPieces: $("#confetti-pieces")
 };
 let scenes = [];
 let states = {};
@@ -18,6 +19,8 @@ let paused = false;
 let onFlow = false;
 let activeTabId = null;
 let downloading = false;
+let celebrating = false;
+let celebrateTimer = null;
 const STORAGE_KEY = "flowSceneRunner";
 const imageCache = new Map();
 
@@ -39,12 +42,21 @@ function renderScenes() {
   elements.header.hidden = hasScenes;
   elements.runStatus.hidden = hasScenes;
   clearTimeout(setRunStatus.timer);
+  const linkedCount = Object.keys(links).length;
+  elements.linkStatus.textContent = hasScenes ? `${linkedCount}/${scenes.length} linked · ${scenes.length - linkedCount} remaining` : `0/0 linked · 0 remaining`;
+  const allDone = hasScenes && linkedCount === scenes.length;
+  elements.linkStatus.classList.toggle("done", allDone);
+  if (allDone) triggerConfetti(); else stopConfetti();
   elements.scenes.replaceChildren(...scenes.map((scene) => {
     const item = document.createElement("li");
     const linked = Boolean(links[scene.id]);
     const state = linked ? "done" : (states[scene.id]?.state || "pending");
     item.className = scene.id === activeSceneId ? `${state} active` : state;
     item.dataset.id = scene.id;
+    const rowNum = document.createElement("span");
+    rowNum.className = "row-num";
+    rowNum.textContent = scene.id;
+    item.append(rowNum);
     const thumb = document.createElement("img");
     thumb.className = "thumb";
     thumb.alt = "Linked image reference";
@@ -153,6 +165,29 @@ async function showPreview(url) {
   if (elements.previewBackdrop.hidden) return;
   if (dataUrl) elements.previewImage.src = dataUrl;
   else elements.previewStatus.hidden = false;
+}
+function confettiPiece() {
+  const piece = document.createElement("span");
+  piece.className = "confetti-piece";
+  piece.style.left = `${Math.random() * 100}%`;
+  piece.style.background = ["#e6c84f", "#ffffff", "#9c9c9c", "#c26363", "#6a6a6a"][Math.floor(Math.random() * 5)];
+  piece.style.animationDuration = `${1.6 + Math.random() * 1.6}s`;
+  piece.style.animationDelay = `${Math.random() * 1.5}s`;
+  return piece;
+}
+function triggerConfetti() {
+  if (celebrating) return;
+  celebrating = true;
+  elements.confetti.hidden = false;
+  elements.confettiPieces.replaceChildren(...Array.from({ length: 45 }, confettiPiece));
+  celebrateTimer = setTimeout(stopConfetti, 6000);
+}
+function stopConfetti() {
+  clearTimeout(celebrateTimer);
+  celebrateTimer = null;
+  celebrating = false;
+  elements.confetti.hidden = true;
+  elements.confettiPieces.replaceChildren();
 }
 function closePreview() {
   elements.previewBackdrop.hidden = true;

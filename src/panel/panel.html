@@ -48,6 +48,7 @@
       <section class="step step-scenes" id="step-scenes" hidden>
         <div class="scenes-bar">
           <button id="back-paste" class="back" aria-label="Back to paste timeline" title="Back to paste">←</button>
+          <span id="link-status" class="link-status">0/0 linked · 0 remaining</span>
         </div>
         <ol id="scenes" class="scenes"></ol>
       </section>
@@ -74,6 +75,11 @@
         <img id="preview-image" alt="Linked image preview" />
         <p id="preview-status" class="preview-status" hidden>That linked image is no longer available from this Flow session.</p>
       </div>
+    </div>
+
+    <div id="confetti" hidden>
+      <p id="confetti-text">Congratulations!</p>
+      <div id="confetti-pieces"></div>
     </div>
 
     <div id="inactive" hidden>

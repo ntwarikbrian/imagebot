@@ -135,7 +135,48 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
 }
 .warning p { margin: 0; font-size: 11px; color: var(--red); }
 
-.scenes-bar { display: flex; align-items: center; }
+.scenes-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.link-status { color: var(--muted); font-size: 11px; text-align: right; }
+.link-status.done { color: #e6c84f; animation: shake .5s ease; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+#confetti {
+  position: fixed; inset: 0; z-index: 200;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+}
+#confetti[hidden] { display: none; }
+#confetti-text {
+  margin: 0;
+  color: #e6c84f;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+  animation: pop .4s ease;
+}
+@keyframes pop {
+  0% { transform: scale(.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+#confetti-pieces { position: absolute; inset: 0; overflow: hidden; }
+.confetti-piece {
+  position: absolute;
+  top: -14px;
+  width: 8px; height: 12px;
+  opacity: .9;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes confetti-fall {
+  to { transform: translateY(110vh) rotate(720deg); }
+}
 .back {
   flex: 0 0 auto;
   width: 26px; height: 26px;
@@ -208,6 +249,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
 .scenes .copy:hover, .scenes .copy.copied { color: #e6e6e6; }
 .scenes .copy.copied { font-size: 9px; }
 .time { opacity: .75; flex: 0 0 auto; }
+.row-num { flex: 0 0 auto; min-width: 16px; color: var(--muted); font-weight: 700; }
 .prompt { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 
 #preview-backdrop {
