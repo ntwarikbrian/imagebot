@@ -101,6 +101,7 @@ function unlinkScene(id) {
   activeSceneId = id;
   saveState();
   renderScenes();
+  updateLinkButtons();
   setRunStatus(`Scene ${id} unlinked — pick a new reference image.`);
   syncOverlay();
 }
@@ -168,6 +169,7 @@ async function loadState() {
   paused = saved.paused === true;
   if (scenes.length) {
     renderScenes();
+    updateLinkButtons();
     setRunStatus(`Restored ${scenes.length} scene${scenes.length === 1 ? "" : "s"} from your last session.`);
   }
 }
@@ -214,6 +216,7 @@ elements.split.addEventListener("click", () => {
   activeSceneId = null;
   imageCache.clear();
   renderScenes();
+  updateLinkButtons();
   setRunStatus(scenes.length ? `${scenes.length} scene${scenes.length === 1 ? "" : "s"} ready for review.` : "No scene markers found. Use **(start–end)** before each prompt.", scenes.length === 0);
   saveState();
   syncOverlay();
@@ -295,6 +298,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
   const next = nextOpenSceneId(sceneId);
   activeSceneId = next;
   renderScenes();
+  updateLinkButtons();
   if (next == null) setRunStatus("All scenes linked.");
   else { const timing = scenes.find((s) => s.id === next)?.timing || next; setRunStatus(`Scene ${sceneId} linked and marked done. Next: scene ${next} (${timing}).`); }
   syncOverlay();
