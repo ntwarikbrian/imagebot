@@ -17,9 +17,9 @@ per-scene queue of image prompts for `https://flow.google.com/`.
   scene↔image links stay saved and linked images stay faintly marked (number still shown).
 - **Download all**: downloads every linked image in timeline order, saved as `image<N>.<ext>`
   where `<N>` is the row number the image reference matches (e.g. `image3.png`, `image12.jpg`)
-  into your `flow-scenes/` folder. Works with any number of linked rows (even just one),
-  opens your Downloads folder while it runs, and reveals the files when finished. Rows whose
-  image is no longer available are skipped and listed, with the saved count shown in the panel.
+  into your `flow-scenes/` folder. Works with any number of linked rows (even just one) and
+  reveals the finished file in File Explorer when the batch is done. Rows whose image is no
+  longer available are skipped and listed, with the saved count shown in the panel.
 - Your timeline, queue, checkmarks, and links persist between sessions and browser restarts.
 - **Refresh** wipes the panel back to a clean slate: it asks for confirmation, then clears the
   timeline, scenes, links, and all saved data, and removes link badges from the Flow page.

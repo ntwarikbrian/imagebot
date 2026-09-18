@@ -271,8 +271,7 @@ elements.downloadAll.addEventListener("click", async () => {
   if (!targets.length) { setRunStatus("No linked images to download.", true); return; }
   downloading = true;
   updateLinkButtons();
-  setRunStatus(`Downloading ${targets.length} linked image${targets.length === 1 ? "" : "s"} — check your Downloads folder…`);
-  chrome.downloads.showDefaultFolder();
+  setRunStatus(`Downloading ${targets.length} linked image${targets.length === 1 ? "" : "s"}…`);
   const response = await send({ type: "DOWNLOAD_ALL", scenes: targets }).catch(() => null);
   downloading = false;
   updateLinkButtons();
