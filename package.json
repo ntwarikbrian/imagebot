@@ -1,0 +1,14 @@
+{
+  "name": "flow-scene-runner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sidebar extension that splits a storyboard timeline into per-scene Flow prompts with a persistent queue.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "watch": "node scripts/build.js watch"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

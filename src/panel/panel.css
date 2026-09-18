@@ -1,0 +1,15 @@
+:root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { width: 100%; min-width: 320px; margin: 0; color: #eef1f8; background: #17191f; }
+main { height: 100%; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+h1 { margin: 0; font-size: 18px; }
+header p { margin: 2px 0 0; font-size: 12px; }
+.status.ok { color: #8be1a3; }.status.bad { color: #ff9a9a; }
+label { display: block; margin: 0 0 6px; font-size: 12px; font-weight: 650; }
+textarea { width: 100%; min-height: 120px; resize: vertical; border: 1px solid #3a3d47; border-radius: 8px; padding: 9px; color: inherit; background: #22252d; font: 12px/1.4 ui-monospace, monospace; }
+.actions { display: flex; gap: 8px; }
+button { flex: 1; border: 0; border-radius: 7px; padding: 8px 6px; color: white; cursor: pointer; font-weight: 700; }
+button:disabled { opacity: .45; cursor: not-allowed; }.secondary { background: #333843; }
+.run-status { min-height: 18px; margin: 2px 0 0; font-size: 12px; color: #bfc5d3; }.run-status.error { color: #ff9a9a; }
+.scenes { flex: 1 1 auto; overflow: auto; margin: 0; padding: 8px 0 0 20px; font-size: 11px; }.scenes li { display: flex; align-items: flex-start; gap: 6px; padding: 4px 2px; border-bottom: 1px solid #2d3039; }.scenes li.running { color: #aebdff; font-weight: 700; }.scenes li.done { color: #8be1a3; }.scenes li.failed { color: #ff9a9a; }.scenes .check { flex: 0 0 auto; width: 16px; height: 16px; margin-top: 1px; padding: 0; border: 1px solid #454957; border-radius: 50%; background: transparent; color: transparent; font-size: 10px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; }.scenes .check:hover { border-color: #8be1a3; }.scenes li.done .check { background: #2f6b3f; border-color: #8be1a3; color: #d4ffe0; }.scenes .copy { flex: 0 0 auto; width: 16px; height: 16px; margin-top: 1px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #9097a8; font-size: 11px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; }.scenes .copy:hover, .scenes .copy.copied { color: #8be1a3; }.scenes .copy.copied { font-size: 9px; }.time { opacity: .7; flex: 0 0 auto; }.hint { margin: 2px 0 0; color: #9097a8; font-size: 10px; line-height: 1.4; } code { color: #b8c6ff; }

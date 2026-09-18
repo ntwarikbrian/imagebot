@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flow Scene Runner</title>
+    <link rel="stylesheet" href="panel.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Flow Scene Runner</h1>
+        <p id="site-status" class="status">Checking Flow…</p>
+      </header>
+
+      <label for="timeline">Storyboard timeline</label>
+      <textarea id="timeline" spellcheck="false" placeholder="Paste scenes marked like **(0:00–0:07)** prompt text"></textarea>
+
+      <div class="actions">
+        <button id="split" class="secondary">Split scenes</button>
+      </div>
+
+      <section aria-live="polite">
+        <p id="run-status" class="run-status">Paste a timeline, then split it.</p>
+        <ol id="scenes" class="scenes"></ol>
+      </section>
+      <p class="hint">Use the circle to mark a scene done and the copy icon to copy a scene’s prompt. Splits are kept between sessions.</p>
+    </main>
+    <script src="panel.js"></script>
+  </body>
+</html>
