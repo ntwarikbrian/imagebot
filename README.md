@@ -8,10 +8,11 @@ per-scene queue of image prompts for `https://flow.google.com/`.
 - Paste a full storyboard timeline; split it into scenes using `**(0:00–0:07)**` markers.
 - Review the queue in the sidebar: mark scenes done with a clickable checkmark, and copy
   each scene's prompt with the copy icon.
-- **Link images**: select a scene, turn on **Link**, then click the badge on a matching
-  image on the Flow page to attach it to that scene (one image per scene). **Pause** removes
-  the pickers so you can keep prompting or improving in Flow, while the scene↔image links
-  stay saved and the linked images stay faintly marked.
+- **Link images**: turn on **Link**, click a scene's circle, then click that scene's reference
+  image on the Flow page. Linking marks the scene done and moves to the next scene
+  automatically; click a linked circle to unlink. Circles appear only while Link mode is on.
+  **Pause** hides the pickers so you can keep prompting or improving in Flow, while the
+  scene↔image links stay saved and linked images stay faintly marked.
 - Your timeline, queue, checkmarks, and links persist between sessions and browser restarts.
 - Includes the original Flow automation runner (`src/content/flow-runner.js`) that can fill
   the Flow prompt box, click Generate, wait for each new image, and download it.
@@ -53,9 +54,10 @@ The build is a plain Node copy of `src/` into `dist/` — no bundler, no depende
 1. Paste your timeline. Each scene needs a marker such as `**(0:00–0:07)**`.
 2. Select **Split scenes** to build the queue.
 3. Mark scenes done as you work, and use the copy icon to copy a prompt into Flow.
-4. To align images to scenes: click a scene row to make it active, select **Link**, then click
-   the badge on the image you want for that scene. Switching image replaces the link; clicking
-   the same image again unlinks it. Select **Pause** to use Flow normally while keeping links.
+4. To align images to scenes: select **Link**, click the circle on a timeline row, then click
+   that scene's reference image on Flow. The row is marked done and the next scene is selected
+   automatically. Click a linked circle to unlink and re-pick. Select **Pause** to use Flow
+   normally while keeping links.
 
 ## Development
 

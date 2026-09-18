@@ -26,16 +26,20 @@ function parseTimeline(text) {
 function renderScenes() {
   elements.scenes.replaceChildren(...scenes.map((scene) => {
     const item = document.createElement("li");
-    const state = states[scene.id]?.state || "pending";
+    const linked = Boolean(links[scene.id]);
+    const state = linked ? "done" : (states[scene.id]?.state || "pending");
     item.className = scene.id === activeSceneId ? `${state} active` : state;
     item.dataset.id = scene.id;
-    const check = document.createElement("button");
-    check.type = "button";
-    check.className = "check";
-    check.setAttribute("aria-label", state === "done" ? "Mark scene pending" : "Mark scene done");
-    check.setAttribute("aria-pressed", state === "done");
-    check.textContent = "✓";
-    check.addEventListener("click", () => toggleDone(scene.id));
+    if (linkMode) {
+      const check = document.createElement("button");
+      check.type = "button";
+      check.className = "check";
+      check.setAttribute("aria-label", linked ? "Unlink this scene" : "Choose a reference image for this scene");
+      check.setAttribute("aria-pressed", linked);
+      check.textContent = linked ? "✓" : "";
+      check.addEventListener("click", () => onCircleClick(scene.id));
+      item.append(check);
+    }
     const copy = document.createElement("button");
     copy.type = "button";
     copy.className = "copy";
@@ -54,7 +58,7 @@ function renderScenes() {
     const time = document.createElement("span");
     time.className = "time";
     time.textContent = scene.timing;
-    item.append(check, copy, thumb, time, document.createTextNode(scene.prompt));
+    item.append(copy, thumb, time, document.createTextNode(scene.prompt));
     item.addEventListener("click", (event) => {
       if (event.target.closest("button") || event.target.closest("img")) return;
       activeSceneId = activeSceneId === scene.id ? null : scene.id;
@@ -64,10 +68,31 @@ function renderScenes() {
     return item;
   }));
 }
-function toggleDone(id) {
-  states[id] = states[id]?.state === "done" ? { state: "pending" } : { state: "done" };
+function onCircleClick(id) {
+  if (links[id]) { unlinkScene(id); return; }
+  activeSceneId = activeSceneId === id ? null : id;
   renderScenes();
+  if (activeSceneId == null) setRunStatus("Link mode on — click a scene’s circle, then click its reference image in Flow.");
+  else { const timing = scenes.find((s) => s.id === id)?.timing || id; setRunStatus(`Scene ${id} (${timing}) — click its reference image in Flow.`); }
+  syncOverlay();
+}
+function unlinkScene(id) {
+  delete links[id];
+  states[id] = { state: "pending" };
+  activeSceneId = id;
   saveState();
+  renderScenes();
+  setRunStatus(`Scene ${id} unlinked — pick a new reference image.`);
+  syncOverlay();
+}
+function nextOpenSceneId(fromId) {
+  const order = scenes.map((s) => s.id);
+  const start = order.indexOf(fromId);
+  for (let step = 1; step <= order.length; step += 1) {
+    const id = order[(start + step) % order.length];
+    if (!links[id]) return id;
+  }
+  return null;
 }
 async function copyPrompt(scene, button) {
   try {
@@ -142,7 +167,8 @@ elements.link.addEventListener("click", () => {
   linkMode = true;
   paused = false;
   updateLinkButtons();
-  setRunStatus(activeSceneId != null ? `Link mode on — click ${scenes.find((s) => s.id === activeSceneId)?.timing || activeSceneId}’s image in Flow.` : "Link mode on — click a scene first, then click its image in Flow.");
+  renderScenes();
+  setRunStatus(activeSceneId != null ? `Link mode on — click scene ${activeSceneId}’s reference image in Flow.` : "Link mode on — click a scene’s circle, then click its reference image in Flow.");
   syncOverlay();
 });
 elements.pause.addEventListener("click", () => {
@@ -158,10 +184,15 @@ chrome.runtime.onMessage.addListener((message, sender) => {
   if (sender.tab?.id !== activeTabId || message?.type !== "LINK_CLICK") return;
   const sceneId = message.sceneId ?? activeSceneId;
   if (sceneId == null || !message.url) return;
-  if (links[sceneId] === message.url) { delete links[sceneId]; setRunStatus(`Unlinked scene ${sceneId}.`); }
-  else { links[sceneId] = message.url; setRunStatus(`Scene ${sceneId} linked.`); }
+  if (links[sceneId] === message.url) { unlinkScene(sceneId); return; }
+  links[sceneId] = message.url;
+  states[sceneId] = { state: "done" };
   saveState();
+  const next = nextOpenSceneId(sceneId);
+  activeSceneId = next;
   renderScenes();
+  if (next == null) setRunStatus("All scenes linked.");
+  else { const timing = scenes.find((s) => s.id === next)?.timing || next; setRunStatus(`Scene ${sceneId} linked and marked done. Next: scene ${next} (${timing}).`); }
   syncOverlay();
 });
 (async () => { await loadState(); checkTab(); })();
