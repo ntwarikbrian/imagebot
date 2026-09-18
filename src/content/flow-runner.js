@@ -13,7 +13,7 @@
     if (!document.getElementById("fsr-overlay-style")) {
       const style = document.createElement("style");
       style.id = "fsr-overlay-style";
-      style.textContent = ".fsr-overlay-layer{position:fixed;inset:0;pointer-events:none;z-index:2147483646}.fsr-badge{position:fixed;width:18px;height:18px;border:2px solid #4f6df5;background:#4f6df5;border-radius:50%;color:#fff;font:700 10px/1 ui-sans-serif,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;pointer-events:auto;box-shadow:0 1px 3px rgba(0,0,0,.5)}.fsr-badge.marked{width:auto;min-width:18px;padding:0 5px;border-radius:10px;background:#2f6b3f;border-color:#8be1a3}.fsr-badge.idle{background:rgba(47,107,63,.22);border-color:rgba(139,225,163,.5);color:#d4ffe0;pointer-events:none;cursor:default}";
+      style.textContent = ".fsr-overlay-layer{position:fixed;inset:0;pointer-events:none;z-index:2147483646}.fsr-badge{position:fixed;width:18px;height:18px;border:2px solid #4f6df5;background:#4f6df5;border-radius:50%;color:#fff;font:700 10px/1 ui-sans-serif,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;padding:0;cursor:pointer;pointer-events:auto;box-shadow:0 1px 3px rgba(0,0,0,.5)}.fsr-badge.marked{width:auto;min-width:18px;padding:0 6px;border-radius:10px;background:#2f6b3f;border-color:#8be1a3}.fsr-badge.idle{background:rgba(47,107,63,.22);border-color:rgba(139,225,163,.5);color:#d4ffe0;pointer-events:none;cursor:default}";
       (document.head || document.documentElement).appendChild(style);
     }
   }
@@ -36,7 +36,11 @@
       badge.className = `fsr-badge${marked ? " marked" : ""}${overlay.mode === "paused" ? " idle" : ""}`;
       if (marked) {
         const sceneIds = Object.entries(overlay.links).filter(([, linkedUrl]) => linkedUrl === url).map(([id]) => id).sort((a, b) => Number(a) - Number(b));
-        badge.textContent = `✓ ${sceneIds.join(",")}`;
+        const tick = document.createElement("span");
+        tick.textContent = "✓";
+        const number = document.createElement("span");
+        number.textContent = sceneIds.join(",");
+        badge.append(tick, number);
       }
       if (overlay.mode === "selecting") badge.addEventListener("click", () => { chrome.runtime.sendMessage({ type: "LINK_CLICK", sceneId: overlay.activeSceneId, url }).catch(() => {}); });
       else badge.style.pointerEvents = "none";
