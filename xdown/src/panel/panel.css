@@ -162,6 +162,15 @@ button.fire:not(:disabled):hover { background: var(--red); border-color: var(--r
 
 .hint { font-size: 11px; color: var(--dimmer); }
 
+.clear-btn {
+  background: rgba(194, 99, 99, 0.12);
+  border-color: rgba(194, 99, 99, 0.35);
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.clear-btn:not(:disabled):hover { background: var(--red); border-color: var(--red); color: #fff; }
+
 .pill {
   background: var(--green);
   border-color: var(--green);

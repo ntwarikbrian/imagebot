@@ -1,4 +1,18 @@
 let lastDownloadId = null;
+const STORE_KEYS = ["xdl_links", "xdl_mode", "xdl_paused"];
+
+function clearPanelMemory() {
+  try {
+    chrome.storage.local.remove(STORE_KEYS);
+  } catch (err) {
+    console.warn("xdown clear:", err);
+  }
+}
+
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== "xdown-panel") return;
+  port.onDisconnect.addListener(() => clearPanelMemory());
+});
 
 function safeName(name) {
   let n = String(name || "").trim().replace(/\\/g, "/");

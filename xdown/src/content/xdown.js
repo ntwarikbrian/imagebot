@@ -249,6 +249,15 @@
       sendResponse({ ok: true, version: VERSION });
       return;
     }
+    if (msg.type === "RESET") {
+      overlay.mode = "off";
+      overlay.links = {};
+      overlay.storedDeep = [];
+      render();
+      chrome.runtime.sendMessage({ type: "VIDEOS", videos: mergedCollect() }).catch(() => {});
+      sendResponse({ ok: true });
+      return;
+    }
     if (msg.type === "SYNC") {
       overlay.mode = (msg.mode === "selecting" || msg.mode === "paused") ? msg.mode : "off";
       overlay.links = msg.links && typeof msg.links === "object" ? msg.links : {};

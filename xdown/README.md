@@ -18,6 +18,8 @@ the ones you want with a checkmark overlay, and downloads them.
   `video1.<ext>`, `video2.<ext>`, … into `Downloads/xdown/`, with progress and a
   list of any failures.
 - **Persisted links** — linked state and Link/Pause mode survive page refreshes.
+- **Clear** — click *Clear* to wipe all linked videos and mode; closing the sidebar
+  also clears the saved memory so the next time it opens fresh.
 
 ## Install (development)
 

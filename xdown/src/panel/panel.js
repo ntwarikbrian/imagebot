@@ -9,6 +9,7 @@ const elements = {
   linkBtn: $("link-btn"),
   pauseBtn: $("pause-btn"),
   downloadAll: $("download-all"),
+  clearBtn: $("clear-btn"),
   videos: $("videos"),
   empty: $("empty")
 };
@@ -126,6 +127,9 @@ function render() {
 
   elements.downloadAll.textContent = `Download all${linked ? ` (${linked})` : ""}`;
   elements.downloadAll.disabled = linked === 0 || downloading;
+
+  const hasState = Object.keys(links).length > 0 || linkMode || paused;
+  elements.clearBtn.disabled = downloading || !hasState;
 
   elements.videos.hidden = !videos.length;
   elements.empty.hidden = videos.length > 0;
@@ -287,7 +291,21 @@ async function discover() {
   }
 }
 
+function clearMemory() {
+  links = {};
+  linkMode = false;
+  paused = false;
+  saveState();
+  setRunStatus("");
+  render();
+  toContent({ type: "RESET" }).catch(() => {});
+}
+
 function boot() {
+  chrome.runtime.connect({ name: "xdown-panel" });
+
+  elements.clearBtn.addEventListener("click", clearMemory);
+
   elements.searchBtn.addEventListener("click", discover);
 
   elements.linkBtn.addEventListener("click", () => {

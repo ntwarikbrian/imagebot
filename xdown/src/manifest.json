@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Xdown",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Sidebar extension that lists every video on a page, links videos with a checkmark overlay, and downloads them.",
   "permissions": ["activeTab", "downloads", "scripting", "storage", "tabs", "sidePanel"],
   "host_permissions": ["<all_urls>"],
