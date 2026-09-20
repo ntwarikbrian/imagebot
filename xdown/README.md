@@ -18,8 +18,6 @@ the ones you want with a checkmark overlay, and downloads them.
   `video1.<ext>`, `video2.<ext>`, … into `Downloads/xdown/`, with progress and a
   list of any failures.
 - **Persisted links** — linked state and Link/Pause mode survive page refreshes.
-- **Completion celebration** — when every video on the page is linked the counter
-  turns yellow, shakes, and confetti fires.
 
 ## Install (development)
 

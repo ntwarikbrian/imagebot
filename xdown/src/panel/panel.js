@@ -10,9 +10,7 @@ const elements = {
   pauseBtn: $("pause-btn"),
   downloadAll: $("download-all"),
   videos: $("videos"),
-  empty: $("empty"),
-  confetti: $("confetti"),
-  confettiPieces: $("confetti-pieces")
+  empty: $("empty")
 };
 
 const STORE_KEYS = { links: "xdl_links", mode: "xdl_mode", paused: "xdl_paused" };
@@ -25,8 +23,6 @@ let linkMode = false;
 let paused = false;
 let downloading = false;
 
-let celebrating = false;
-let celebrateTimer = null;
 let statusTimer = null;
 
 async function toContent(message) {
@@ -56,10 +52,6 @@ async function ensureContent() {
 
 function linkedCount() {
   return videos.filter((v) => links[v.key]).length;
-}
-
-function allDone() {
-  return videos.length > 0 && linkedCount() === videos.length;
 }
 
 function currentMode() {
@@ -171,10 +163,6 @@ function render() {
     li.append(toggle, num, label, download);
     elements.videos.appendChild(li);
   });
-
-  const all = allDone();
-  if (all) triggerConfetti();
-  else stopConfetti();
 }
 
 function toggleLink(video) {
@@ -185,32 +173,6 @@ function toggleLink(video) {
   saveState();
   render();
   sync();
-}
-
-function confettiPiece() {
-  const piece = document.createElement("span");
-  piece.className = "confetti-piece";
-  piece.style.left = `${Math.random() * 100}%`;
-  piece.style.background = ["#e6c84f", "#ffffff", "#9c9c9c", "#c26363", "#6a6a6a"][Math.floor(Math.random() * 5)];
-  piece.style.animationDuration = `${1.6 + Math.random() * 1.6}s`;
-  piece.style.animationDelay = `${Math.random() * 1.5}s`;
-  return piece;
-}
-
-function triggerConfetti() {
-  if (celebrating) return;
-  celebrating = true;
-  elements.confetti.hidden = false;
-  elements.confettiPieces.replaceChildren(...Array.from({ length: 45 }, confettiPiece));
-  celebrateTimer = setTimeout(stopConfetti, 6000);
-}
-
-function stopConfetti() {
-  clearTimeout(celebrateTimer);
-  celebrateTimer = null;
-  celebrating = false;
-  elements.confetti.hidden = true;
-  elements.confettiPieces.replaceChildren();
 }
 
 async function downloadOne(video) {

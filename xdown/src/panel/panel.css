@@ -9,7 +9,6 @@
   --red: #c26363;
   --red-weak: rgba(194, 99, 99, 0.16);
   --green: #3e8e5a;
-  --yellow: #e6c84f;
 }
 
 * { box-sizing: border-box; }
@@ -251,47 +250,3 @@ button.fire:not(:disabled):hover { background: var(--red); border-color: var(--r
 }
 
 [hidden] { display: none !important; }
-
-#confetti {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#confetti[hidden] { display: none; }
-
-#confetti-text {
-  margin: 0;
-  color: var(--yellow);
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-  animation: pop 0.4s ease;
-}
-
-@keyframes pop {
-  0% { transform: scale(0.6); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-#confetti-pieces { position: absolute; inset: 0; overflow: hidden; }
-
-.confetti-piece {
-  position: absolute;
-  top: -14px;
-  width: 8px;
-  height: 12px;
-  opacity: 0.9;
-  animation-name: confetti-fall;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-@keyframes confetti-fall {
-  to { transform: translateY(110vh) rotate(720deg); }
-}
