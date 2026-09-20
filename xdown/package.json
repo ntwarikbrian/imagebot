@@ -1,0 +1,14 @@
+{
+  "name": "xdown",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sidebar extension that lists every video on a page, links them with a checkmark overlay, and downloads them.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "watch": "node scripts/build.js watch"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

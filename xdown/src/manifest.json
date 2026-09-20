@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Xdown",
+  "version": "1.0.1",
+  "description": "Sidebar extension that lists every video on a page, links videos with a checkmark overlay, and downloads them.",
+  "permissions": ["activeTab", "downloads", "scripting", "storage", "tabs", "sidePanel"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "Xdown - download videos from any page"
+  },
+  "side_panel": {
+    "default_path": "panel/panel.html"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content/xdown.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

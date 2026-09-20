@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Xdown</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">⬇</div>
+      <h1>Xdown</h1>
+    </div>
+    <span class="chip" id="site-chip">No page</span>
+  </header>
+
+  <p id="run-status" class="run-status" hidden></p>
+
+  <main>
+    <section class="panel-section">
+      <div class="section-head">
+        <span class="step-num">▶</span>
+        <div class="section-title">
+          <h2>Videos on this page</h2>
+          <p class="step-sub" id="list-sub">Scanning…</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="search-btn" class="grow search-btn" type="button">Search page</button>
+        <button id="link-btn" class="grow" type="button">Link videos on the page</button>
+        <button id="pause-btn" class="grow" type="button" disabled>Pause</button>
+      </div>
+
+      <div class="download-row">
+        <span class="hint">Downloads go to Downloads/xdown/</span>
+        <button id="download-all" class="pill" type="button" disabled>Download all</button>
+      </div>
+
+      <ol id="videos" class="videos" hidden></ol>
+      <p id="empty" class="empty">
+        No videos found on this page yet.<br>
+        Open a page with videos and they will appear here to download.
+      </p>
+    </section>
+  </main>
+
+  <div id="confetti" hidden>
+    <p id="confetti-text">Congratulations!</p>
+    <div id="confetti-pieces"></div>
+  </div>
+
+  <script src="panel.js"></script>
+</body>
+</html>
