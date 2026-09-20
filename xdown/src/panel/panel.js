@@ -101,7 +101,7 @@ function makeTarget(video, index) {
     url: video.url,
     label: video.label,
     ext: video.ext,
-    filename: `video${index + 1}.${video.ext}`,
+    filename: `short${index + 1}.${video.ext}`,
     index
   };
 }
